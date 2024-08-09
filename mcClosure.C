@@ -4,7 +4,8 @@ void mcClosure(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
                const Int_t inel = 0, // inel > N (0/1)
                const TString workingDir = "/Users/rnepeiv/workLund/PhD_work/run3omega/cascadeAnalysisPostSQM",
                const TString fileMC = "/Users/rnepeiv/workLund/PhD_work/run3omega/cascadeAnalysisPostSQM/24jul-lhc24b1b/AnalysisResults.root",
-               const TString fileMCPP = "/Users/rnepeiv/workLund/PhD_work/run3omega/cascadeAnalysisPostSQM/run3_13tev/xi/lhc24b1b/2024-07-24/AnalysisResults.root")
+               const TString fileMCPP = "/Users/rnepeiv/workLund/PhD_work/run3omega/cascadeAnalysisPostSQM/run3_13tev/xi/lhc24b1b/2024-07-24/AnalysisResults.root",
+               const TString postFix = "")
 {
   // Start of Code
   std::cout << "\x1B[1;33m"; // Set text color to yellow
@@ -17,7 +18,7 @@ void mcClosure(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
   // Files with yields in all mult. classes + MB
   TFile* fileDataIn[numMult + 1];
   // MB
-  fileDataIn[0] = TFile::Open(workingDir + "/yieldsOutEffCorr" +  "/yield_" + particleNames[nParticle] + "_MB_inel" + inel + "_mc-closure" + ".root");
+  fileDataIn[0] = TFile::Open(workingDir + "/yieldsOutEffCorr" +  "/yield_" + particleNames[nParticle] + "_MB_inel" + inel + postFix  + ".root");
   if (!fileDataIn[0] || fileDataIn[0]->IsZombie()) {
     std::cerr << "Error opening input data file for MB!" << std::endl;
     return;
@@ -26,7 +27,7 @@ void mcClosure(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
   }
   // in mult. classes
   for (Int_t iFile = 1; iFile < numMult + 1; iFile++) {
-    TString fileInPath = workingDir + "/yieldsOutEffCorr" + "/yield_" + particleNames[nParticle] + "_" + multiplicityPerc[iFile - 1] + "-" + multiplicityPerc[iFile] + "_inel" + inel + "_mc-closure" + ".root";
+    TString fileInPath = workingDir + "/yieldsOutEffCorr" + "/yield_" + particleNames[nParticle] + "_" + multiplicityPerc[iFile - 1] + "-" + multiplicityPerc[iFile] + "_inel" + inel + postFix + ".root";
     fileDataIn[iFile] = TFile::Open(fileInPath);
     if (!fileDataIn[iFile] || fileDataIn[iFile]->IsZombie()) {
       std::cerr << "Error opening input data file for mult. class: " << multiplicityPerc[iFile - 1] <<  " - " << multiplicityPerc[iFile] << std::endl;
@@ -67,6 +68,7 @@ void mcClosure(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
 
   TH2F* hCentFT0M_genMC = (TH2F*)fileMCIn->Get("lf-cascqaanalysis/hCentFT0M_genMC");
   hCentFT0M_genMC->GetYaxis()->SetRange(2 + inel, 3);
+  hCentFT0M_genMC->GetXaxis()->SetRangeUser(0., 100.);
   TH1D* hCentFT0M_genMC_1D = (hCentFT0M_genMC->ProjectionX());
   hCentFT0M_genMC_1D = (TH1D*)hCentFT0M_genMC_1D->Rebin(numMult, "hCentFT0M_genMC_1D_rebinned", multiplicityPerc);
 
@@ -156,7 +158,9 @@ void mcClosure(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
     if(i!=0){
       nEvents = hCentFT0M_genMC_1D->GetBinContent(i);
     } else {
-      nEvents = hCentFT0M_genMC_1D->GetEntries();
+      for (Int_t j = 1; j <= hCentFT0M_genMC_1D->GetNbinsX(); j++) {
+        nEvents += hCentFT0M_genMC_1D->GetBinContent(j); // ne rabotaet verno
+      }
     }
 
     // normalize MC gen.

@@ -18,7 +18,7 @@ o2-analysis-lf-cascpostprocessing ${OPTION} \
 rc=$?
 if [ $rc -eq 0 ]; then
   echo "No problems!"
-  resultsDir="${PWD}/results/run3_13tev/xi/lhc22o_pass7/$formatted_date"
+  resultsDir="${PWD}/results/run3_13tev/xi/lhc22o-pass6-small-tight/$formatted_date"
   # Check if the directory exists
   if [ -d "$resultsDir" ]; then
       echo "Directory '$resultsDir' exists."

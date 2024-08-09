@@ -208,7 +208,7 @@ void compPublXiMB(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
   for (Int_t i = 1; i <= hDummyLow->GetNbinsX(); i++)
     hDummyLow->SetBinContent(i, 1);
   padYieldLow->cd();
-  StyleHisto(hDummyLow, 0.7 , 1.05, 1, 1, sPt, "Ratio to Published", "", 0, 0, 0, 1.0, 0.7, 0, 0.08, 0.08, 0.08, 0.07, 0.01);
+  StyleHisto(hDummyLow, 0.4 , 1.6, 1, 1, sPt, "Ratio to Published", "", 0, 0, 0, 1.0, 0.7, 0, 0.08, 0.08, 0.08, 0.07, 0.01);
   SetTickLength(hDummyLow, 0.025, 0.03);
   hDummyLow->GetXaxis()->SetRangeUser(0, hYieldsRatio->GetXaxis()->GetBinUpEdge(hYieldsRatio->GetNbinsX()) + 0.5);
   hDummyLow->GetYaxis()->CenterTitle();

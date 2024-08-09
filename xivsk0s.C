@@ -18,7 +18,8 @@ void xivsk0s(const TString workingDir = "/Users/rnepeiv/workLund/PhD_work/run3om
   }
 
   // Open k0s File //
-  TFile* file_k0s = TFile::Open(workingDir + "/data/k0s/YieldsIntegrated_NoTOF.root");
+  //TFile* file_k0s = TFile::Open(workingDir + "/data/k0s/YieldsIntegrated_NoTOF.root");
+  TFile* file_k0s = TFile::Open(workingDir + "/data/k0s/YieldsIntegrated_newsel.root");
   if (!file_k0s || file_k0s->IsZombie()) {
       std::cerr << "Error opening k0s file" << std::endl;
       return;
@@ -33,7 +34,7 @@ void xivsk0s(const TString workingDir = "/Users/rnepeiv/workLund/PhD_work/run3om
   }
 
   // Open xi File //
-  TFile* file_xi = TFile::Open(workingDir + "/yieldInMultFitted/yieldInMultFitted_XiPm_inel0.root");
+  TFile* file_xi = TFile::Open(workingDir + "/yieldInMultFitted/yieldInMultFitted_XiPm_inel0-medium-tight.root");
   if (!file_xi || file_xi->IsZombie()) {
       std::cerr << "Error opening k0s file" << std::endl;
       return;
@@ -389,7 +390,7 @@ void xivsk0s(const TString workingDir = "/Users/rnepeiv/workLund/PhD_work/run3om
   TMultiGraph *mg_k0svsxi = new TMultiGraph("k0svsxi", "");
 
   mg_k0svsxi->Add(g_k0svsxi, "P");
-  
+
   mg_k0svsxi->Add(g_k0svsxi_run2_v0m, "P");
   mg_k0svsxi->Add(g_k0svsxi_run2_v0m_e2, "P 5");
   mg_k0svsxi->Add(g_k0svsxi_run2_v0m_e3, "P 5");

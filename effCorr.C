@@ -112,9 +112,13 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
   }
 
   hCentFT0M_rec_data->GetYaxis()->SetRange(2 + inel, 3); // INEL>0
-
+  hCentFT0M_rec_data->GetXaxis()->SetRangeUser(0., 100.);
   TH1F* hCentFT0M_rec_data_1D = (TH1F*)hCentFT0M_rec_data->ProjectionX();
-  hCentFT0M_rec_data_1D = (TH1F*)hCentFT0M_rec_data_1D->Rebin(numMult, "hCentFT0M_rec_data_1D_rebinned", multiplicityPerc);
+
+  TH1F* hCentFT0M_rec_data_1D_finest = (TH1F*)hCentFT0M_rec_data_1D->Clone("hCentFT0M_rec_data_1D_finest");
+  TH1F* hCentFT0M_rec_data_1D_anal = (TH1F*)hCentFT0M_rec_data_1D->Clone("hCentFT0M_rec_data_1D_anal");
+  hCentFT0M_rec_data_1D_anal = (TH1F*)hCentFT0M_rec_data_1D_anal->Rebin(numMult, "hCentFT0M_rec_data_1D_anal", multiplicityPerc);
+  hCentFT0M_rec_data_1D_finest = (TH1F*)hCentFT0M_rec_data_1D_finest->Rebin(numMultFinest, "hCentFT0M_rec_data_1D_finest", multiplicityFinest);
 
   // Output File
   TString outputfilePath = outputDir + "/efficiencies/" + "efficiency_" + particleNames[nParticle] + postFix + ".root";
@@ -188,6 +192,7 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
 
   TDirectory* dirSupport = outputfile->mkdir("supportHistos");
   TDirectory* dirEffAcc = outputfile->mkdir("effAcc");
+  TDirectory* dirSignalLoss = outputfile->mkdir("effSignalLoss");
 
   Double_t leftRap = -0.5;
   Double_t rightRap = 0.5;
@@ -427,7 +432,7 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
     hDummyUp_SignalLoss->SetBinContent(i, 1000);
   canvasCompPlot_SignalLoss->cd();
   padUp_SignalLoss->cd();
-  StyleHisto(hDummyUp_SignalLoss, 0.4, 1.3, 1, 1, sPt, "Signal Loss", "", 0, 0, 0, 1.5, 1.0, 0, 0.0, 0.05, 0.0, 0.035, hDummyUp_SignalLoss->GetXaxis()->GetLabelOffset(), 0.005);
+  StyleHisto(hDummyUp_SignalLoss, -0.8, 2.0, 1, 1, sPt, "Signal Loss", "", 0, 0, 0, 1.5, 1.0, 0, 0.0, 0.05, 0.0, 0.035, hDummyUp_SignalLoss->GetXaxis()->GetLabelOffset(), 0.005);
   SetTickLength(hDummyUp_SignalLoss, 0.025, 0.03);
   TAxis *axisDummyUpY_SignalLoss = hDummyUp_SignalLoss->GetYaxis();
   axisDummyUpY_SignalLoss->ChangeLabel(1, -1, -1, -1, -1, -1, " ");
@@ -440,7 +445,7 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
   for (Int_t i = 1; i <= hDummyLow_SignalLoss->GetNbinsX(); i++)
     hDummyLow_SignalLoss->SetBinContent(i, 1);
   padLow_SignalLoss->cd();
-  StyleHisto(hDummyLow_SignalLoss, 0.6, 1.2, 1, 1, sPt, "Ratio to 0-100%", "", 0, 0, 0, 1.0, 0.7, 0, 0.08, 0.08, 0.08, 0.07, hDummyLow_SignalLoss->GetXaxis()->GetLabelOffset(), 0.01);
+  StyleHisto(hDummyLow_SignalLoss, 0.1, 1.2, 1, 1, sPt, "Ratio to 0-100%", "", 0, 0, 0, 1.0, 0.7, 0, 0.08, 0.08, 0.08, 0.07, hDummyLow_SignalLoss->GetXaxis()->GetLabelOffset(), 0.01);
   SetTickLength(hDummyLow_SignalLoss, 0.025, 0.03);
   TAxis *axisDummyLowY_SignalLoss = hDummyLow_SignalLoss->GetYaxis();
   //padLow_SignalLoss->SetGridy(); // Only grid on x-axis
@@ -468,22 +473,36 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
 
   TH2F* hCentFT0M_rec = (TH2F*)fileMCin->Get("lf-cascqaanalysis/hCentFT0M_rec");
   TH2F* hCentFT0M_genMC = (TH2F*)fileMCin->Get("lf-cascqaanalysis/hCentFT0M_genMC");
-
-  TH1D* eventCorr;
-
   hCentFT0M_rec->GetYaxis()->SetRange(2 + inel, 3); // INEL>0
   hCentFT0M_genMC->GetYaxis()->SetRange(2 + inel, 3); // INEL>0
+  hCentFT0M_rec->GetXaxis()->SetRangeUser(0., 100.);
+  hCentFT0M_genMC->GetXaxis()->SetRange(0., 100.);
 
-  TH1D* hCentFT0M_rec_1D = (hCentFT0M_rec->ProjectionX());
-  TH1D* hCentFT0M_genMC_1D = (hCentFT0M_genMC->ProjectionX());
+  TH2F* hCentFT0M_rec_to_rebin = (TH2F*)hCentFT0M_rec->Clone("hCentFT0M_rec_to_rebin");
+  TH2F* hCentFT0M_genMC_to_rebin = (TH2F*)hCentFT0M_genMC->Clone("hCentFT0M_genMC_to_rebin");
 
-  hCentFT0M_rec_1D = (TH1D*)hCentFT0M_rec_1D->Rebin(numMult, "hCentFT0M_rec_1D_rebinned", multiplicityPerc);
-  hCentFT0M_genMC_1D = (TH1D*)hCentFT0M_genMC_1D->Rebin(numMult, "hCentFT0M_genMC_1D_rebinned", multiplicityPerc);
+  TH2F* hCentFT0M_rec_to_finest = (TH2F*)hCentFT0M_rec->Clone("hCentFT0M_rec_to_finest");
+  TH2F* hCentFT0M_genMC_to_finest = (TH2F*)hCentFT0M_genMC->Clone("hCentFT0M_genMC_to_finest");
+
+  TH1D* eventCorr;
+  TH1D* eventCorr_finest;
+
+  TH1D* hCentFT0M_rec_1D_rebinned = (hCentFT0M_rec_to_rebin->ProjectionX());
+  TH1D* hCentFT0M_genMC_1D_rebinned = (hCentFT0M_genMC_to_rebin->ProjectionX());
+
+  TH1D* hCentFT0M_rec_1D_finest = (hCentFT0M_rec_to_finest->ProjectionX());
+  TH1D* hCentFT0M_genMC_1D_finest = (hCentFT0M_genMC_to_finest->ProjectionX());
+
+  hCentFT0M_rec_1D_rebinned = (TH1D*)hCentFT0M_rec_1D_rebinned->Rebin(numMult, "hCentFT0M_rec_1D_rebinned", multiplicityPerc);
+  hCentFT0M_genMC_1D_rebinned = (TH1D*)hCentFT0M_genMC_1D_rebinned->Rebin(numMult, "hCentFT0M_genMC_1D_rebinned", multiplicityPerc);
+
+  hCentFT0M_rec_1D_finest = (TH1D*)hCentFT0M_rec_1D_finest->Rebin(numMultFinest, "hCentFT0M_rec_1D_finest", multiplicityFinest);
+  hCentFT0M_genMC_1D_finest = (TH1D*)hCentFT0M_genMC_1D_finest->Rebin(numMultFinest, "hCentFT0M_genMC_1D_finest", multiplicityFinest);
 
   // TCanvas *canvasTest = new TCanvas("canvasTest","canvasTest", 800, 600);
   // canvasTest->cd();
   // StyleCanvas(canvasTest, 0.14, 0.05, 0.11, 0.15);
-  // hCentFT0M_rec_data_1D->Draw();
+  // hCentFT0M_rec_1D_rebinned->Draw();
   // canvasTest->Draw();
 
   {
@@ -511,9 +530,20 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
     multiplicityPercEventFacotr[numMult + 1] = 150;
     eventCorr = new TH1D("eventCorr", "eventCorr", numMult + 1, multiplicityPercEventFacotr);
     std::cout << "\n************* Event Corrections in Classes *************\n";
-    for (int i = 1; i <= eventCorr->GetNbinsX() - 1; ++i) {
-      Double_t k = hCentFT0M_rec_1D->GetBinContent(i);
-      Double_t n = hCentFT0M_genMC_1D->GetBinContent(i);
+    long int totalRec = 0;
+    long int totalGen = 0;
+    for (int i = 1; i <= eventCorr->GetNbinsX(); ++i) {
+      Double_t k = 0;
+      Double_t n = 0;
+      if (i == eventCorr->GetNbinsX()) { // MB
+        k = totalRec;
+        n = totalGen;
+      } else {
+        k = hCentFT0M_rec_1D_rebinned->GetBinContent(i);
+        n = hCentFT0M_genMC_1D_rebinned->GetBinContent(i);
+        totalRec += k;
+        totalGen += n;
+      }
       double ratio = (n != 0) ? (k / n) : 0.0;
       Double_t errorInBin = sqrt(((Double_t)k+1)*((Double_t)k+2)/(n+2)/(n+3) - pow((Double_t)(k+1),2)/pow(n+2,2));
       std::cout << "mult. %: " << multiplicityPercEventFacotr[i-1] << " -- " << multiplicityPercEventFacotr[i] <<  " k = " << k << " n = " << n << " ratio: " << ratio << " error: " << errorInBin << std::endl;
@@ -525,31 +555,62 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
     Double_t MBeventCorr = 0;
     Double_t errorMBeventCorr = 0;
     for (int j = 1; j <= eventCorr->GetNbinsX() - 1; ++j) {
-      MBeventCorr += eventCorr->GetBinContent(j)*hCentFT0M_rec_data_1D->GetBinContent(j);
-      totWeights += hCentFT0M_rec_data_1D->GetBinContent(j);
-      errorMBeventCorr += pow(eventCorr->GetBinError(j)*hCentFT0M_rec_data_1D->GetBinContent(j), 2);
-      std::cout << "number of events in class " << j << " is: " << hCentFT0M_rec_data_1D->GetBinContent(j) << std::endl;
+      MBeventCorr += eventCorr->GetBinContent(j)*hCentFT0M_rec_data_1D_anal->GetBinContent(j);
+      totWeights += hCentFT0M_rec_data_1D_anal->GetBinContent(j);
+      errorMBeventCorr += pow(eventCorr->GetBinError(j)*hCentFT0M_rec_data_1D_anal->GetBinContent(j), 2);
+      std::cout << "number of events in class " << j << " is: " << hCentFT0M_rec_data_1D_anal->GetBinContent(j) << std::endl;
       std::cout << "error is: " << errorMBeventCorr << std::endl;
     }
     MBeventCorr = MBeventCorr / totWeights;
     std::cout << "total weights: " << totWeights << std::endl;
     eventCorr->SetBinContent(eventCorr->GetNbinsX(), MBeventCorr);
     eventCorr->SetBinError(eventCorr->GetNbinsX(), sqrt(errorMBeventCorr) / totWeights);
+
+    // MB efficiency finest multiplicity bins
+    eventCorr_finest = new TH1D("eventCorr_finest", "eventCorr_finest", numMultFinest, multiplicityFinest);
+    for (int i = 1; i <= hCentFT0M_rec_1D_finest->GetNbinsX(); ++i) {
+      Double_t k = hCentFT0M_rec_1D_finest->GetBinContent(i);
+      Double_t n = hCentFT0M_genMC_1D_finest->GetBinContent(i);
+      double ratio = (n != 0) ? (k / n) : 0.0;
+      Double_t errorInBin = sqrt(((Double_t)k+1)*((Double_t)k+2)/(n+2)/(n+3) - pow((Double_t)(k+1),2)/pow(n+2,2));
+      std::cout << "Finest bin number: " << i << " k = " << k << " n = " << n << " ratio: " << ratio << " error: " << errorInBin << std::endl;
+      eventCorr_finest->SetBinContent(i, ratio);
+      eventCorr_finest->SetBinError(i, errorInBin);
+    }
+    totWeights = 0;
+    MBeventCorr = 0;
+    errorMBeventCorr = 0;
+    for (int j = 1; j <= eventCorr_finest->GetNbinsX(); j++) {
+      // MBeventCorr += eventCorr_finest->GetBinContent(j)*hCentFT0M_rec_data_1D_finest->GetBinContent(j);
+      // totWeights += hCentFT0M_rec_data_1D_finest->GetBinContent(j);
+      MBeventCorr += hCentFT0M_rec_data_1D_finest->GetBinContent(j);
+      totWeights += hCentFT0M_rec_data_1D_finest->GetBinContent(j) / eventCorr_finest->GetBinContent(j);
+      //errorMBeventCorr += pow(eventCorr_finest->GetBinError(j)*hCentFT0M_rec_data_1D_finest->GetBinContent(j), 2);
+      errorMBeventCorr += pow(eventCorr_finest->GetBinError(j) / eventCorr_finest->GetBinContent(j), 2);
+      std::cout << "number of events in finest class " << j << " is: " << hCentFT0M_rec_data_1D_finest->GetBinContent(j) << std::endl;
+      std::cout << "error is: " << errorMBeventCorr << std::endl;
+    }
+    MBeventCorr = MBeventCorr / totWeights;
+    std::cout << "total weights (finest): " << totWeights << std::endl;
+    eventCorr->SetBinContent(eventCorr->GetNbinsX(), MBeventCorr);
+    //eventCorr->SetBinError(eventCorr->GetNbinsX(), sqrt(errorMBeventCorr) / totWeights);
+    eventCorr->SetBinError(eventCorr->GetNbinsX(), sqrt(errorMBeventCorr) * MBeventCorr);
+
     eventCorr->Draw();
 
     TAxis *axisEventCorr = eventCorr->GetXaxis();
     axisEventCorr->ChangeLabel(-1, -1, -1, -1, -1, -1, " "); // last
     axisEventCorr->ChangeLabel(-2, -1, -1, -1, -1, -1, " "); // pre-last
-    StyleHisto(eventCorr, 0.5, 1.4 * eventCorr->GetBinContent(eventCorr->GetMaximumBin()), color[0], MarkerMult[0], "FT0M Multiplicity percentile", "Event Factor", "", 0, 0, 0, 1.0, 1.25, 1.1, 0.05, 0.05, 0.05, 0.05, 0.007, 0.007);
+    StyleHisto(eventCorr, 0., 2. * eventCorr->GetBinContent(eventCorr->GetMaximumBin()), color[0], MarkerMult[0], "FT0M Multiplicity percentile", "Event Factor", "", 0, 0, 0, 1.0, 1.25, 1.1, 0.05, 0.05, 0.05, 0.05, 0.007, 0.007);
     TH1F* eventCorrClone = (TH1F*)eventCorr->Clone("eventCorrClone");
-    StyleHisto(eventCorrClone, 0.5, 1.4 * eventCorrClone->GetBinContent(eventCorr->GetMaximumBin()), color[0], 0, "FT0M Multiplicity percentile", "Event Factor", "", 0, 0, 0, 1.0, 1.25, SizeMult[0], 0.05, 0.05, 0.05, 0.05, 0.007, 0.007);
+    StyleHisto(eventCorrClone, 0., 1.4 * eventCorrClone->GetBinContent(eventCorr->GetMaximumBin()), color[0], 0, "FT0M Multiplicity percentile", "Event Factor", "", 0, 0, 0, 1.0, 1.25, SizeMult[0], 0.05, 0.05, 0.05, 0.05, 0.007, 0.007);
     eventCorrClone->GetXaxis()->SetRangeUser(40, 150);
     eventCorr->Draw("same HIST");
     eventCorrClone->Draw("same TEXT90");
     TLatex labelMB;
     labelMB.SetTextSize(0.05);
     labelMB.SetTextAlign(12);
-    labelMB.DrawLatex(103.3,.5329,"Minimum Bias");
+    labelMB.DrawLatex(104.9,.087,"Minimum Bias");
 
     LegendTitleEventCorr->Draw("same");
     canvasEventCorr->Write();
@@ -617,30 +678,31 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
         hEffAcc = (TH1F *)hEffAccInClasses[0]->Clone(Form("EffAcc_%i",iFile)); // 0 (MB) or i
         StyleHisto(hSignalLoss, 0, 1.2 * hSignalLoss->GetBinContent(hSignalLoss->GetMaximumBin()), kBlack, 20, sPt, "Signal Loss", "", 0, 0, 0, 1.0, 1.25, 1,  0.05, 0.05, 0.05, 0.05, 0.007, 0.007);
         StyleHisto(hEffAcc, 0, 1.2 * hEffAcc->GetBinContent(hEffAcc->GetMaximumBin()), kBlack, 20, sPt, "Eff. x Acc.", "", 0, 0, 0, 1.0, 1.25, 1,  0.05, 0.05, 0.05, 0.05, 0.007, 0.007);
-        //cout << "i = " << i << std::endl;
+        cout << "i = " << i << std::endl;
         break;
       }
     }
 
-    // TCanvas *canvasSignalLossFit = new TCanvas(Form("canvasSignalLossFit_%i", iFile),Form("canvasSignalLossFit_%i", iFile), 800, 600);
-    // canvasSignalLossFit->cd();
-    // StyleCanvas(canvasSignalLossFit, 0.14, 0.05, 0.11, 0.15);
-    // hSignalLoss->Draw();
-
     TF1 *fitExp = new TF1("fitExp", "[0]*exp([1]*x-[2]) + [3]", binpt[0], binpt[numPtBins]);
-    fitExp->SetParameters(-0.4, -5.7, -0.1, 1);
+    //fitExp->SetParameters(-0.4, -5.7, -0.1, 1);
+    fitExp->SetParameters(-0.4, -0.1, -0.3, 1);
     TF1 *fitPol1 = new TF1("fitPol1", "[0]*x + [1]", binpt[0], binpt[numPtBins]);
     fitPol1->SetParameters(0.01, 0.9);
+    TF1 *fitInverse = new TF1("fitInverse", "[0]/(x + [1]) + [2]", binpt[0], binpt[numPtBins]);
+    fitInverse->SetParameters(0.2, 0.3, 0.9);
 
     if (multiplicityPerc[iFile] > 1e-3) { // perform exp fit if mult.% > x - 1e-3
-      hSignalLoss->Fit(fitExp, "QR0"); // Fit low-mult. with exponent
-      // fitExp->Draw("same");
+      hSignalLoss->Fit(fitExp, "QR0"); // Fit with exponent
       padUp_SignalLoss->cd();
       fitExp->Draw("same");
-      //cout << "Chi2/NDF " << fitExp->GetChisquare() / fitExp->GetNDF() << endl;
+      cout << "Chi2/NDF " << fitExp->GetChisquare() / fitExp->GetNDF() << endl;
+
+      // hSignalLoss->Fit(fitInverse, "R0"); // Fit with inverse
+      // padUp_SignalLoss->cd();
+      // fitInverse->Draw("same");
+      // cout << "Chi2/NDF " << fitInverse->GetChisquare() / fitInverse->GetNDF() << endl;
     } else {
       hSignalLoss->Fit(fitPol1, "QR0"); // Fit wil pol1
-      // fitPol1->Draw("same");
       padUp_SignalLoss->cd();
       fitPol1->Draw("same");
       //cout << "Chi2/NDF " << fitPol1->GetChisquare() / fitPol1->GetNDF() << endl;      
@@ -663,27 +725,41 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
 
       Double_t xValue = hSignalLoss->GetXaxis()->GetBinCenter(b);
 
-      if (multiplicityPerc[iFile] > 1.1) {
-        sigLoss = fitExp->Eval(xValue);
+      if (multiplicityPerc[iFile] > 1e-3) {
+        // Take values from histogram
+        sigLoss = hSignalLoss->GetBinContent(b);
+        relErrSigLoss = hSignalLoss->GetBinError(hSignalLoss->FindBin(hYieldCorrected[iFile]->GetXaxis()->GetBinCenter(b))) / sigLoss;
+        // Take values from fit
+        // Exp
+        // sigLoss = fitExp->Eval(xValue);
 
-        Double_t withoutConst = sigLoss - fitExp->GetParameter(3);
-        Double_t sig0 = (withoutConst / fitExp->GetParameter(0)) * fitExp->GetParError(0);
-        Double_t sig1 = withoutConst * xValue * fitExp->GetParError(1);
-        Double_t sig2 = withoutConst * fitExp->GetParError(2);
-        Double_t sig3 = fitExp->GetParError(3);
+        // Double_t withoutConst = sigLoss - fitExp->GetParameter(3);
+        // Double_t sig0 = (withoutConst / fitExp->GetParameter(0)) * fitExp->GetParError(0);
+        // Double_t sig1 = withoutConst * xValue * fitExp->GetParError(1);
+        // Double_t sig2 = withoutConst * fitExp->GetParError(2);
+        // Double_t sig3 = fitExp->GetParError(3);
 
-        relErrSigLoss = sqrt(pow(sig0,2) + pow(sig1,2) + pow(sig2,2) + pow(sig3,2)) / sigLoss;
+        // relErrSigLoss = sqrt(pow(sig0,2) + pow(sig1,2) + pow(sig2,2) + pow(sig3,2)) / sigLoss;
+        // Invertse
+        // sigLoss = fitInverse->Eval(xValue);
+
+        // Double_t withoutA = (sigLoss - fitInverse->GetParameter(2)) / fitInverse->GetParameter(0);
+        // Double_t sig0 = withoutA * fitInverse->GetParError(0);
+        // Double_t sig1 = withoutA * withoutA * fitInverse->GetParameter(0) * fitInverse->GetParError(1);
+        // Double_t sig2 = fitInverse->GetParError(2);
+
+        // relErrSigLoss = sqrt(pow(sig0,2) + pow(sig1,2) + pow(sig2,2)) / sigLoss;
       } else {
         // Take values from histogram
-        //sigLoss = hSignalLoss->GetBinContent(b);
-        //relErrSigLoss = hSignalLoss->GetBinError(hSignalLoss->FindBin(hYieldCorrected[iFile]->GetXaxis()->GetBinCenter(b))) / sigLoss;
+        sigLoss = hSignalLoss->GetBinContent(b);
+        relErrSigLoss = hSignalLoss->GetBinError(hSignalLoss->FindBin(hYieldCorrected[iFile]->GetXaxis()->GetBinCenter(b))) / sigLoss;
         // Take values from fit
-        sigLoss = fitPol1->Eval(xValue);
+        // sigLoss = fitPol1->Eval(xValue);
 
-        Double_t sig0 = xValue * fitPol1->GetParError(0);
-        Double_t sig1 = fitPol1->GetParError(1);
+        // Double_t sig0 = xValue * fitPol1->GetParError(0);
+        // Double_t sig1 = fitPol1->GetParError(1);
 
-        relErrSigLoss = sqrt(pow(sig0,2) + pow(sig1,2)) / sigLoss;
+        // relErrSigLoss = sqrt(pow(sig0,2) + pow(sig1,2)) / sigLoss;
       }
 
       hYieldCorrected[iFile]->SetBinContent(b, hYieldCorrected[iFile]->GetBinContent(b) / sigLoss);
@@ -731,8 +807,8 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
           break;
         }
       }
-      cascadesInClass[b-1][multBin] += totYieldCorrected[b-1][iFile] * hCentFT0M_rec_data_1D->GetBinContent(iFile);
-      //std::cout << "totYieldCorrected in bin " << b-1 << " is: " << totYieldCorrected[b-1][iFile] << " " << multiplicityPerc[iFile-1] << " -- " << multiplicityPerc[iFile] <<  " class width: " << hCentFT0M_rec_data_1D->GetBinContent(iFile) << std::endl;
+      cascadesInClass[b-1][multBin] += totYieldCorrected[b-1][iFile] * hCentFT0M_rec_data_1D_anal->GetBinContent(iFile) / eventCorr->GetBinContent(iFile) * hYieldCorrected[iFile]->GetBinWidth(b);
+      //std::cout << "totYieldCorrected in bin " << b-1 << " is: " << totYieldCorrected[b-1][iFile] << " " << multiplicityPerc[iFile-1] << " -- " << multiplicityPerc[iFile] <<  " number of cascades: " << totYieldCorrected[b-1][iFile] * hCentFT0M_rec_data_1D_anal->GetBinContent(iFile) / eventCorr->GetBinContent(iFile) * hYieldCorrected[iFile]->GetBinWidth(b) << " pt width: " << hYieldCorrected[iFile]->GetBinWidth(b) << std::endl;
     }
     //std::cout << "multBin: " <<  multBin << std::endl;
   }
@@ -747,7 +823,7 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
       signalLossInBin += hSignalLossInClasses[i+1]->GetBinContent(b)*cascadesInClass[b-1][i];
       sumWeights += cascadesInClass[b-1][i];
       errorInBin += pow(hSignalLossInClasses[i+1]->GetBinError(b)*cascadesInClass[b-1][i], 2);
-      std::cout << "Total number of cascades in pt bin " << b-1 << " is: " <<  cascadesInClass[b-1][i] << " in class: " << i << std::endl;
+      //std::cout << "Total number of cascades in pt bin " << b-1 << " is: " <<  cascadesInClass[b-1][i] << " in class: " << i << std::endl;
     }
     //std::cout << "Total number of cascades in pt bin " << b-1 << " is: " <<  sumWeights << std::endl;
     hSignalLossInClasses[0]->SetBinContent(b, signalLossInBin / sumWeights);
@@ -781,11 +857,18 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
     //cout << "Chi2/NDF " << fitPol1->GetChisquare() / fitPol1->GetNDF() << endl;
 
     TF1 *fitExp = new TF1("fitExp", "[0]*exp([1]*x-[2]) + [3]", binpt[0], binpt[numPtBins]);
-    fitExp->SetParameters(-0.4, -5.7, -0.1, 1);
+    fitExp->SetParameters(-0.4, -0.1, -0.3, 1);
     padUp_SignalLoss->cd();
     hSignalLoss->Fit(fitExp, "QR0"); // Fit low-mult. with exponent
     fitExp->Draw("same");
     //cout << "Chi2/NDF " << fitExp->GetChisquare() / fitExp->GetNDF() << endl;
+
+    // TF1 *fitInverse = new TF1("fitInverse", "[0]/(x + [1]) + [2]", binpt[0], binpt[numPtBins]);
+    // fitInverse->SetParameters(0.2, 0.3, 0.9);
+    // padUp_SignalLoss->cd();
+    // hSignalLoss->Fit(fitInverse, "R0"); // Fit low-mult. with exponent
+    // fitInverse->Draw("same");
+    //cout << "Chi2/NDF " << fitInverse->GetChisquare() / fitInverse->GetNDF() << endl;
 
     // Compute it like a separate class //
     for (Int_t b = 1; b <= hYield[0]->GetNbinsX(); b++) {
@@ -805,8 +888,8 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
 
       Double_t xValue = hSignalLoss->GetXaxis()->GetBinCenter(b);
       // Take values from histogram
-      // sigLoss = hSignalLoss->GetBinContent(b);
-      // relErrSigLoss = hSignalLoss->GetBinError(hSignalLoss->FindBin(hYieldCorrected[0]->GetXaxis()->GetBinCenter(b))) / sigLoss;
+      sigLoss = hSignalLoss->GetBinContent(b);
+      relErrSigLoss = hSignalLoss->GetBinError(hSignalLoss->FindBin(hYieldCorrected[0]->GetXaxis()->GetBinCenter(b))) / sigLoss;
       // Take values from fit
       // Pol1
       // sigLoss = fitPol1->Eval(xValue);
@@ -816,15 +899,24 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
 
       // relErrSigLoss = sqrt(pow(sig0,2) + pow(sig1,2)) / sigLoss;
       // EXP
-      sigLoss = fitExp->Eval(xValue);
+      // sigLoss = fitExp->Eval(xValue);
 
-      Double_t withoutConst = sigLoss - fitExp->GetParameter(3);
-      Double_t sig0 = (withoutConst / fitExp->GetParameter(0)) * fitExp->GetParError(0);
-      Double_t sig1 = withoutConst * xValue * fitExp->GetParError(1);
-      Double_t sig2 = withoutConst * fitExp->GetParError(2);
-      Double_t sig3 = fitExp->GetParError(3);
+      // Double_t withoutConst = sigLoss - fitExp->GetParameter(3);
+      // Double_t sig0 = (withoutConst / fitExp->GetParameter(0)) * fitExp->GetParError(0);
+      // Double_t sig1 = withoutConst * xValue * fitExp->GetParError(1);
+      // Double_t sig2 = withoutConst * fitExp->GetParError(2);
+      // Double_t sig3 = fitExp->GetParError(3);
 
-      relErrSigLoss = sqrt(pow(sig0,2) + pow(sig1,2) + pow(sig2,2) + pow(sig3,2)) / sigLoss;
+      // relErrSigLoss = sqrt(pow(sig0,2) + pow(sig1,2) + pow(sig2,2) + pow(sig3,2)) / sigLoss;
+      // Invertse
+      // sigLoss = fitInverse->Eval(xValue);
+
+      // Double_t withoutA = (sigLoss - fitInverse->GetParameter(2)) / fitInverse->GetParameter(0);
+      // Double_t sig0 = withoutA * fitInverse->GetParError(0);
+      // Double_t sig1 = withoutA * withoutA * fitInverse->GetParameter(0) * fitInverse->GetParError(1);
+      // Double_t sig2 = fitInverse->GetParError(2);
+
+      // relErrSigLoss = sqrt(pow(sig0,2) + pow(sig1,2) + pow(sig2,2)) / sigLoss;
 
       hYieldCorrected[0]->SetBinContent(b, hYieldCorrected[0]->GetBinContent(b) / sigLoss);
       //std::cout << "yield after signal loss: " << hYieldCorrected[0]->GetBinContent(b) << std::endl;
@@ -837,7 +929,7 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
       hYieldCorrected[0]->SetBinContent(b, hYieldCorrected[0]->GetBinContent(b) * eventCorr->GetBinContent(eventCorr->GetNbinsX()));
       //std::cout << "yield after event corr.: " << hYieldCorrected[0]->GetBinContent(b) << std::endl;
       hYieldCorrected[0]->SetBinError(b, sqrt(pow(relErr, 2) + pow(relErrEventFactor, 2)) * hYieldCorrected[0]->GetBinContent(b));
-      //cout << "event correction: " << eventCorr[numMult + 1] << " relErrEventFactor: " << relErrEventFactor<< endl;
+      //cout << "event correction: " << eventCorr->GetBinContent(eventCorr->GetNbinsX()) << " relErrEventFactor: " << relErrEventFactor<< endl;
     }
     corrYieldOutDir[0] = outputfileCorrYield[0]->mkdir("effCorrYield");
     corrYieldOutDir[0]->cd();
@@ -851,6 +943,7 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
     hEffAcc->Write();
   }
 
+  dirSignalLoss->cd();
   canvasCompPlot_SignalLoss->Write();
 
   delete[] binpt;

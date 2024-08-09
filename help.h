@@ -252,15 +252,26 @@ Double_t multiplicityPerc[numMult + 1] = {0, 1, 5, 10, 15, 20, 30, 40, 50, 70, 1
 // const Int_t numMult = 3; // number of multiplicity sub-intervals
 // Double_t multiplicityPerc[numMult + 1] = {0, 30, 70, 100};
 
-// const Int_t numMultEff = 10; // number of multiplicity sub-intervals for efficiency correction
-// Double_t multiplicityPercEff[numMultEff + 1] = {0, 1, 5, 10, 15, 20, 30, 40, 50, 70, 100};
+const Int_t numMultEff = 10; // number of multiplicity sub-intervals for efficiency correction
+Double_t multiplicityPercEff[numMultEff + 1] = {0, 1, 5, 10, 15, 20, 30, 40, 50, 70, 100};
 // const Int_t numMultEff = 6; // number of multiplicity sub-intervals for efficiency correction
 // Double_t multiplicityPercEff[numMultEff + 1] = {0, 1, 5, 15, 30, 50, 100};
-const Int_t numMultEff = 5; // number of multiplicity sub-intervals for efficiency correction
-Double_t multiplicityPercEff[numMultEff + 1] = {0, 1, 30, 50, 70, 100};
+// const Int_t numMultEff = 5; // number of multiplicity sub-intervals for efficiency correction
+// Double_t multiplicityPercEff[numMultEff + 1] = {0, 1, 30, 50, 70, 100};
+// const Int_t numMultEff = 3; // number of multiplicity sub-intervals
+// Double_t multiplicityPercEff[numMultEff + 1] = {0, 30, 70, 100};
 // const Int_t numMultEff = 1; // number of multiplicity sub-intervals for efficiency correction
 // Double_t multiplicityPercEff[numMultEff + 1] = {0, 100};
-// 0, 0.001, 0.01, 1.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0
+
+const Int_t numMultFinest = 15; // number of multiplicity sub-intervals for efficiency correction
+Double_t multiplicityFinest[numMultFinest + 1] =  {0., 0.01, 1.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0};
+
+// const Int_t numMultFinest = 3; // number of multiplicity sub-intervals for efficiency correction
+// Double_t multiplicityFinest[numMultFinest + 1] =  {0, 30, 50, 100};
+// const Int_t numMultFinest = 5; // number of multiplicity sub-intervals for efficiency correction
+// Double_t multiplicityFinest[numMultFinest + 1] =  {0, 1, 30, 50, 70, 100};
+// const Int_t numMultFinest = 10; // number of multiplicity sub-intervals for efficiency correction
+// Double_t multiplicityFinest[numMultFinest + 1] =  {0, 1, 5, 10, 15, 20, 30, 40, 50, 70, 100};
 
 Int_t color[] = {kBlack, kMagenta+1, kGreen+3,kCyan+2, 634, kBlue+1, kYellow+2, kViolet, kOrange-1, kRed+1};
 
@@ -295,8 +306,6 @@ Double_t binptXi[numPtXi + 1] = {0.6, 1.0,
 // Double_t binptXi[numPtXi + 1] = {0.6, 1.6, 2.6, 3.5, 4.5, 8.0};
 // const Int_t numPtXi = 1;
 // Double_t binptXi[numPtXi + 1] = {0.6, 8.0};                         
-
-
 
 int FIptxi = TColor::CreateGradientColorTable(NRGBs,stops,red,green,blue,numPtXi);       
 

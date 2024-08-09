@@ -39,6 +39,7 @@ void yieldInMult(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
   }
 
   hCentFT0M_rec_data->GetYaxis()->SetRange(2 + inel, 3); // INEL>0
+  hCentFT0M_rec_data->GetXaxis()->SetRangeUser(0., 100.);
 
   TH1F* hCentFT0M_rec_data_1D = (TH1F*)hCentFT0M_rec_data->ProjectionX();
   hCentFT0M_rec_data_1D = (TH1F*)hCentFT0M_rec_data_1D->Rebin(numMult, "hCentFT0M_rec_data_1D_rebinned", multiplicityPerc);
@@ -65,7 +66,7 @@ void yieldInMult(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
     }
   }
 
-  TString fileInPathEff = workingDir + "/efficiencies" + "/efficiency_" + particleNames[nParticle] + effPostFix + postFix + ".root";
+  TString fileInPathEff = workingDir + "/efficiencies" + "/efficiency_" + particleNames[nParticle] + effPostFix + ".root";
   TFile* fileEffin = TFile::Open(fileInPathEff);
   if (!fileEffin || fileEffin->IsZombie()) {
       std::cerr << "Error opening `fileEffin` data file!" << std::endl;
@@ -150,7 +151,7 @@ void yieldInMult(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
     // Syst. histo
     hYieldPerPercSyst->Scale(weight * hCentFT0M_rec_data_1D->GetBinContent(iFile));
 
-    std::cout << "Fraction: " << sumWeights/2.61149e+08*100 << std::endl;
+    std::cout << "Fraction: " << sumWeights/9.48086e+08*100 << std::endl;
     std::cout << "weight: " << weight * hCentFT0M_rec_data_1D->GetBinContent(iFile) << " class: " << multiplicityPerc[iFile - 1] << " - " <<  multiplicityPerc[iFile] << std::endl;
     hYieldMBsummed->Add(hYieldPerPerc);
     // Syst. histo

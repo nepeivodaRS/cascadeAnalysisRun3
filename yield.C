@@ -102,7 +102,7 @@ void yield(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
   dirBaseHists->cd();
   TCanvas *canvasNEvents = new TCanvas("canvasNEvents","canvasNEvents", 800, 600);
   canvasNEvents->cd();
-  hNEvents->GetXaxis()->SetRange(1,11);
+  hNEvents->GetXaxis()->SetRange(1,12);
   hNEvents->SetTitle("");
   hNEvents->Draw("HIST TEXT0");
   //StyleHistoLight(hNEvents);
@@ -117,17 +117,8 @@ void yield(const Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
     return;
   }
 
-  switch(inel) {
-    case (-1):
-      hCentFT0M_rec->GetZaxis()->SetRange(1, 3);
-      break;
-    case (0):
-      hCentFT0M_rec->GetZaxis()->SetRange(2, 3);
-      break;
-    case (1):
-      hCentFT0M_rec->GetZaxis()->SetRange(3, 3);
-      break;
-  }
+  hCentFT0M_rec->GetYaxis()->SetRange(2 + inel, 3); // INEL>0
+  hCentFT0M_rec->GetXaxis()->SetRangeUser(0., 100.);
 
   TH1F* hCentFT0M_rec_1D = (TH1F*)hCentFT0M_rec->ProjectionX();
 
