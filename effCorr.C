@@ -925,7 +925,7 @@ void effCorr(const  Int_t nParticle = 2, // 0-2 : xi, 3-5 : omega
 
       // Event splitting/loss correction
       relErr = hYieldCorrected[0]->GetBinError(b) / hYieldCorrected[0]->GetBinContent(b);
-      Double_t relErrEventFactor = eventCorr->GetBinError(eventCorr->GetNbinsX())/eventCorr->GetBinContent(numMult + 1);
+      Double_t relErrEventFactor = eventCorr->GetBinError(eventCorr->GetNbinsX())/eventCorr->GetBinContent(eventCorr->GetNbinsX());
       hYieldCorrected[0]->SetBinContent(b, hYieldCorrected[0]->GetBinContent(b) * eventCorr->GetBinContent(eventCorr->GetNbinsX()));
       //std::cout << "yield after event corr.: " << hYieldCorrected[0]->GetBinContent(b) << std::endl;
       hYieldCorrected[0]->SetBinError(b, sqrt(pow(relErr, 2) + pow(relErrEventFactor, 2)) * hYieldCorrected[0]->GetBinContent(b));
